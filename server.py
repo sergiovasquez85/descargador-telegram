@@ -32,6 +32,11 @@ async def webhook():
     await app.update_queue.put(update)
     return "ok"
 
+@flask_app.route("/", methods=["GET"])
+def home():
+    return "Servidor funcionando correctamente"
+
+
 # Configurar el webhook en Telegram
 async def set_webhook():
     webhook_url = f"https://tu-dominio.com/{TOKEN}"  # ← REEMPLAZA esto con la URL correcta de tu Railway
