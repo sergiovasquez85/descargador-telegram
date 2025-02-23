@@ -9,7 +9,7 @@ if TOKEN is None:
     raise ValueError("El TOKEN no está configurado en las variables de entorno.")
 
 # Configurar el bot de Telegram con Application
-app = Application.builder().token(TOKEN).build()
+telegram_app = Application.builder().token(TOKEN).build()
 
 # Definir funciones de manejo de mensajes
 async def start(update: Update, context):
@@ -24,7 +24,7 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # Configurar el webhook
-app = Flask(__name__)
+flask_app = Flask(__name__)
 
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
