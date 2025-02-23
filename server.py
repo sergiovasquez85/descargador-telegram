@@ -20,8 +20,8 @@ async def handle_message(update: Update, context):
     await update.message.reply_text(f"Recibí tu mensaje: {text}")
 
 # Agregar manejadores de comandos y mensajes
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # Configurar el webhook
 flask_app = Flask(__name__)
@@ -30,7 +30,7 @@ flask_app = Flask(__name__)
 def webhook():
     data = request.get_json()
     print(data)  # Esto imprimirá los datos en los logs
-    update = Update.de_json(data, app.bot)
+    update = Update.de_json(data, telegram_app.bot)
     app.update_queue.put(update)
     return "ok"
 
@@ -42,7 +42,7 @@ def home():
 # Configurar el webhook en Telegram
 async def set_webhook():
     webhook_url = f"https://tu-dominio.com/{TOKEN}"  # ← REEMPLAZA esto con la URL correcta de tu Railway
-    await app.bot.set_webhook(webhook_url)
+    await telegram_app.bot.set_webhook(webhook_url)
 
 # Iniciar el servidor Flask y la aplicación de Telegram
 if __name__ == "__main__":
