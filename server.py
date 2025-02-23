@@ -1,43 +1,35 @@
-from flask import Flask, request, jsonify, send_file
-import requests
 import os
+from flask import Flask, request
+from telegram import Bot, Update
+from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters, CallbackContext
 
 app = Flask(__name__)
 
-# Configura tu bot de Telegram
-TOKEN = "TU_BOT_TOKEN"
-API_URL = f"https://api.telegram.org/bot{TOKEN}/"
+# Obtener el token desde las variables de entorno
+TOKEN = os.environ.get("TOKEN")
+if TOKEN is None:
+    raise ValueError("El TOKEN no está configurado en las variables de entorno.")
 
-def obtener_file_id(url):
-    """ Extraer el ID del archivo desde la URL de Telegram """
-    # Aquí debes extraer el file_id desde la URL compartida
-    return "FILE_ID_EXTRAIDO"
+# Configurar el bot de Telegram
+bot = Bot(token=TOKEN)
+dispatcher = Dispatcher(bot, None, workers=0, use_context=True)
 
-def obtener_file_path(file_id):
-    """ Obtener la ruta del archivo desde Telegram """
-    response = requests.get(f"{API_URL}getFile?file_id={file_id}").json()
-    return response.get("result", {}).get("file_path")
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Hola! Envíame un enlace de Telegram y te ayudaré a descargar el video.")
 
-@app.route("/descargar", methods=["POST"])
-def descargar_video():
-    data = request.json
-    url = data.get("url")
+def handle_message(update: Update, context: CallbackContext):
+    text = update.message.text
+    update.message.reply_text(f"Recibí tu mensaje: {text}")
 
-    file_id = obtener_file_id(url)
-    if not file_id:
-        return jsonify({"success": False, "error": "No se pudo obtener el video"})
+# Agregar manejadores de comandos y mensajes
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
-    file_path = obtener_file_path(file_id)
-    if not file_path:
-        return jsonify({"success": False, "error": "Error al obtener la ruta del archivo"})
-
-    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
-    
-    video_filename = "video.mp4"
-    with open(video_filename, "wb") as f:
-        f.write(requests.get(file_url).content)
-
-    return send_file(video_filename, as_attachment=True)
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(), bot)
+    dispatcher.process_update(update)
+    return "ok"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
