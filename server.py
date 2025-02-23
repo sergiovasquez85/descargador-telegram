@@ -35,9 +35,10 @@ def webhook():
     if data:
         update = Update.de_json(data, telegram_app.bot)
 
+
+
         
         asyncio.run(telegram_app.process_update(update))
-        
     return "ok", 200
 
 @flask_app.route("/", methods=["GET"])
