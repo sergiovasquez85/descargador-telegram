@@ -41,7 +41,7 @@ def home():
 
 # Configurar Webhook en Telegram
 def set_webhook():
-    WEBHOOK_URL = f"https://tu-app.railway.app/{TOKEN}"  # Reemplaza con la URL de tu Railway
+    WEBHOOK_URL = f"https://descargador-telegram-production.up.railway.app/{TOKEN}"  # Reemplaza con la URL de tu Railway
     response = requests.get(f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}")
     print(response.json())
 
