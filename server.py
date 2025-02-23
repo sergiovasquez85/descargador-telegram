@@ -46,7 +46,7 @@ async def set_webhook():
 # Iniciar el servidor Flask y la aplicación de Telegram
 if __name__ == "__main__":
     import asyncio
-    loop = asyncio.get_event_loop()
-    loop.run(set_webhook()) # ← Asegura que el webhook se configure antes de iniciar
+    loop = asyncio.run(set_webhook())
+    loop.run_until_complete(set_webhook()) # ← Asegura que el webhook se configure antes de iniciar
     telegram_app.run_polling()  # ← Esto mantiene el bot activo en segundo plano
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
