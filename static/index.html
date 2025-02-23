@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Descargador Telegram</title>
+  <title>Descargador de Videos de Telegram</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2rem; }
     .container { max-width: 600px; margin: auto; }
@@ -14,42 +14,32 @@
 <body>
   <div class="container">
     <h1>Descargador de Videos de Telegram</h1>
-    <p>Ingresa el enlace del video y presiona "Descargar".</p>
-    <input type="text" id="videoUrl" placeholder="https://t.me/ejemplo_video">
-    <button onclick="descargar()">Descargar</button>
-    <p id="status"></p>
+    <p>El último enlace de descarga generado es:</p>
+    <a id="downloadLink" href="#" target="_blank">Aquí aparecerá el enlace de descarga</a>
   </div>
 
   <script>
-    function descargar() {
-      const url = document.getElementById("videoUrl").value;
-      if (!url) {
-        alert("Por favor, ingresa un enlace.");
-        return;
-      }
-      
-      document.getElementById("status").innerText = "Procesando descarga...";
-      
-      // Llamada fetch a nuestro endpoint en Flask
-      fetch("/descargar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url })
-      })
-      .then(response => response.json())
-      .then(data => {
+    async function obtenerUltimoEnlace() {
+      try {
+        const response = await fetch("/ultimo_enlace");
+        const data = await response.json();
         if(data.success) {
-          document.getElementById("status").innerText = "Descarga lista: " + data.download_url;
-          // Opcional: redirigir o abrir el enlace de descarga
-          window.open(data.download_url, "_blank");
+          document.getElementById("downloadLink").innerText = data.download_url;
+          document.getElementById("downloadLink").href = data.download_url;
         } else {
-          document.getElementById("status").innerText = "Error: " + data.error;
+          document.getElementById("downloadLink").innerText = "No hay enlace disponible aún.";
+          document.getElementById("downloadLink").href = "#";
         }
-      })
-      .catch(error => {
-        document.getElementById("status").innerText = "Error: " + error;
-      });
+      } catch (error) {
+        console.error("Error al obtener el enlace:", error);
+      }
     }
+
+    // Llama a la función cada 5 segundos para actualizar el enlace
+    setInterval(obtenerUltimoEnlace, 5000);
+
+    // Llama de inmediato al cargar la página
+    obtenerUltimoEnlace();
   </script>
 </body>
 </html>
