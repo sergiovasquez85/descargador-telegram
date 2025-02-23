@@ -24,7 +24,7 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # Configurar el webhook
-flask_app = Flask(__name__)
+app = Flask(__name__)
 
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
