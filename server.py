@@ -35,8 +35,15 @@ async def start(update: Update, context):
     await update.message.reply_text("¡Hola! Envíame un enlace de Telegram y te ayudaré a descargar el video.")
 
 async def handle_message(update: Update, context):
-    text = update.message.text
-    await update.message.reply_text(f"Recibí tu mensaje: {text}")
+    print(update.to_dict())  # Imprime todo el contenido del mensaje para depuración
+    if update.message.video:
+        file_id = update.message.video.file_id
+        await update.message.reply_text(f"El file_id del video es: {file_id}")
+    elif update.message.document:
+        file_id = update.message.document.file_id
+        await update.message.reply_text(f"El file_id del documento es: {file_id}")
+    else:
+        await update.message.reply_text("No se encontró video ni documento en el mensaje.")
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
