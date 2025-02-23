@@ -10,8 +10,11 @@ TOKEN = os.environ.get("TOKEN")
 if not TOKEN:
     raise ValueError("El TOKEN no está configurado en las variables de entorno.")
 
-# 2. Configurar el bot de Telegram con Application
+# 2. Configurar la aplicación de Telegram
 telegram_app = Application.builder().token(TOKEN).build()
+
+# 2.1. Inicializar la aplicación de Telegram (se ejecuta una vez por worker)
+asyncio.run(telegram_app.initialize())
 
 # 3. Definir funciones de manejo de mensajes
 async def start(update: Update, context):
@@ -21,11 +24,11 @@ async def handle_message(update: Update, context):
     text = update.message.text
     await update.message.reply_text(f"Recibí tu mensaje: {text}")
 
-# Agregar los manejadores de comandos y mensajes
+# 4. Agregar los manejadores de comandos y mensajes
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# 4. Configurar Flask
+# 5. Configurar Flask
 flask_app = Flask(__name__)
 
 @flask_app.route(f"/{TOKEN}", methods=["POST"])
@@ -33,7 +36,7 @@ def webhook():
     data = request.get_json()
     if data:
         update = Update.de_json(data, telegram_app.bot)
-        # Creamos un nuevo event loop para procesar la actualización
+        # Se crea un nuevo event loop para procesar la actualización
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(telegram_app.process_update(update))
@@ -44,9 +47,9 @@ def webhook():
 def home():
     return "Servidor funcionando correctamente"
 
-# 5. Función para configurar el webhook en Telegram
+# 6. Función para configurar el webhook en Telegram
 def set_webhook():
-    # Reemplaza 'tu-app.railway.app' con la URL real de tu servicio en Railway.
+    # Reemplaza esta URL con la URL real asignada a tu servicio Railway
     WEBHOOK_URL = f"https://descargador-telegram-production.up.railway.app/{TOKEN}"
     response = requests.post(
         f"https://api.telegram.org/bot{TOKEN}/setWebhook",
@@ -54,12 +57,8 @@ def set_webhook():
     )
     print("Set Webhook Response:", response.json())
 
-# 6. Iniciar la aplicación
+# 7. Arranque de la aplicación
 if __name__ == "__main__":
-    # Configurar el webhook antes de iniciar Flask
-    set_webhook()
-    # Inicializar la aplicación de Telegram
-    asyncio.run(telegram_app.initialize())
-    # Iniciar el servidor Flask
+    set_webhook()  # Configura el webhook en Telegram
     PORT = int(os.environ.get("PORT", 5000))
     flask_app.run(host="0.0.0.0", port=PORT)
