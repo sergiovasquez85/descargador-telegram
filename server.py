@@ -26,7 +26,7 @@ telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_
 # Configurar el webhook
 flask_app = Flask(__name__)
 
-@app.route(f"/{TOKEN}", methods=["POST"])
+@flask_app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     data = request.get_json()
     print(data)  # Esto imprimirá los datos en los logs
