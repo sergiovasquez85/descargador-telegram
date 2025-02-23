@@ -1,5 +1,6 @@
 import os
 import requests
+import threading
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
@@ -29,6 +30,7 @@ flask_app = Flask(__name__)
 
 @flask_app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
+    """Recibe las actualizaciones de Telegram y las pasa a la app de Telegram"""
     data = request.get_json()
     if data:
         update = Update.de_json(data, telegram_app.bot)
@@ -41,11 +43,24 @@ def home():
 
 # Configurar Webhook en Telegram
 def set_webhook():
-    WEBHOOK_URL = f"https://descargador-telegram-production.up.railway.app/{TOKEN}"  # Reemplaza con la URL de tu Railway
-    response = requests.get(f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}")
-    print(response.json())
+    WEBHOOK_URL = f"https://descargador-telegram-production.up.railway.app/{TOKEN}"  # Reemplaza con tu URL real
+    try:
+        response = requests.post(f"https://api.telegram.org/bot{TOKEN}/setWebhook", json={"url": WEBHOOK_URL})
+        print("Webhook configurado:", response.json())
+    except Exception as e:
+        print("Error al configurar el webhook:", e)
 
-# Iniciar el servidor
+# Ejecutar el bot en segundo plano
+def run_telegram_bot():
+    telegram_app.run_polling()
+
 if __name__ == "__main__":
-    set_webhook()  # Configura el webhook antes de iniciar Flask
+    # Configurar el Webhook antes de iniciar Flask
+    set_webhook()
+
+    # Iniciar el bot en un hilo separado para que no bloquee Flask
+    bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
+    bot_thread.start()
+
+    # Iniciar el servidor Flask
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
