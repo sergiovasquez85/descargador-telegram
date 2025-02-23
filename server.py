@@ -26,10 +26,12 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 # Configurar el webhook
 flask_app = Flask(__name__)
 
-@flask_app.route(f"/{TOKEN}", methods=["POST"])
-async def webhook():
-    update = Update.de_json(request.get_json(), bot)  # ✅ Corregido
-    await app.process_update(update)  # ✅ Alternativa segura
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    print(data)  # Esto imprimirá los datos en los logs
+    update = Update.de_json(data, app.bot)
+    app.update_queue.put(update)
     return "ok"
 
 @flask_app.route("/", methods=["GET"])
