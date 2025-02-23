@@ -31,7 +31,7 @@ def webhook():
     data = request.get_json()
     print(data)  # Esto imprimirá los datos en los logs
     update = Update.de_json(data, telegram_app.bot)
-    app.update_queue.put(update)
+    telegram_app.update_queue.put(update)
     return "ok"
 
 @flask_app.route("/", methods=["GET"])
