@@ -11,6 +11,9 @@ TOKEN = os.environ.get("TOKEN")
 if not TOKEN:
     raise ValueError("El TOKEN no está configurado en las variables de entorno.")
 
+# Variable global para almacenar el último enlace de descarga
+ultimo_download_url = None
+
 # 2. Crear la aplicación de Telegram
 telegram_app = Application.builder().token(TOKEN).build()
 
@@ -35,7 +38,7 @@ async def start(update: Update, context):
     await update.message.reply_text("¡Hola! Envíame un enlace de Telegram y te ayudaré a descargar el video.")
 
 async def handle_message(update: Update, context):
-    print(update.to_dict())  # Imprime todo el contenido del mensaje para depuración
+    print(update.to_dict())  # Depuración
     if update.message.video:
         file_id = update.message.video.file_id
         await update.message.reply_text(f"El file_id del video es: {file_id}")
@@ -46,6 +49,7 @@ async def handle_message(update: Update, context):
         await update.message.reply_text("No se encontró video ni documento en el mensaje.")
 
 async def handle_video(update: Update, context):
+    global ultimo_download_url
     # Verifica si el mensaje tiene video o documento
     if update.message.video:
         file_id = update.message.video.file_id
@@ -61,12 +65,11 @@ async def handle_video(update: Update, context):
     file = await context.bot.get_file(file_id)
     file_path = file.file_path  # Esto es lo que devuelve Telegram
     
-    # Formar la URL de descarga
-    download_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
+    # Formar la URL de descarga y almacenarla en la variable global
+    ultimo_download_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
     
     # Enviar la URL al usuario
-    await update.message.reply_text(f"El enlace de descarga es: {download_url}")
-
+    await update.message.reply_text(f"El enlace de descarga es: {ultimo_download_url}")
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -91,6 +94,14 @@ def webhook():
         # Envía la actualización al event loop global sin cerrar el loop
         asyncio.run_coroutine_threadsafe(telegram_app.process_update(update), bot_loop)
     return "ok", 200
+
+# Endpoint para obtener el último enlace generado
+@flask_app.route("/ultimo_enlace", methods=["GET"])
+def ultimo_enlace():
+    if ultimo_download_url:
+        return {"success": True, "download_url": ultimo_download_url}, 200
+    else:
+        return {"success": False, "error": "No hay enlace disponible"}, 404
 
 # (Opcional) Endpoint para procesar descargas
 @flask_app.route("/descargar", methods=["POST"])
