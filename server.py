@@ -29,19 +29,18 @@ flask_app = Flask(__name__)
 @flask_app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     data = request.get_json()
-    print(data)  # Esto imprimirá los datos en los logs
-    update = Update.de_json(data, telegram_app.bot)
-    telegram_app.update_queue.put(update)
+    if data:
+        update = Update.de_json(data, telegram_app.bot)  # ← Posible error aquí si bot aún no está disponible
+        telegram_app.update_queue.put(update)  # Enviar la actualización a la cola de procesamiento
     return "ok"
 
 @flask_app.route("/", methods=["GET"])
 def home():
     return "Servidor funcionando correctamente"
 
-
 # Configurar el webhook en Telegram
 async def set_webhook():
-    webhook_url = f"https://tu-dominio.com/{TOKEN}"  # ← REEMPLAZA esto con la URL correcta de tu Railway
+    webhook_url = f"https://tu-dominio.com/{TOKEN}"  # ← REEMPLAZA con la URL real de tu servidor en Railway
     await telegram_app.bot.set_webhook(webhook_url)
 
 # Iniciar el servidor Flask y la aplicación de Telegram
@@ -49,4 +48,5 @@ if __name__ == "__main__":
     import asyncio
     loop = asyncio.get_event_loop()
     loop.run_until_complete(set_webhook())  # ← Asegura que el webhook se configure antes de iniciar
+    telegram_app.run_polling()  # ← Esto mantiene el bot activo en segundo plano
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
