@@ -47,6 +47,8 @@ async def handle_message(update: Update, context):
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+telegram_app.add_handler(MessageHandler(filters.VIDEO, handle_video))
+telegram_app.add_handler(MessageHandler(filters.Document.ALL, handle_video))
 
 # 6. Configurar Flask
 # La carpeta "static" debe estar en la raíz del proyecto y contener el archivo index.html.
@@ -76,7 +78,7 @@ def descargar_video():
         return {"success": False, "error": "No se proporcionó URL"}, 400
     # Aquí implementarías la lógica para descargar el video.
     # Por ahora, simulamos una respuesta exitosa:
-    download_url = "https://mi-cdn.com/videos/ejemplo_video.mp4"
+    download_url = "https://api.telegram.org/file/bot{TOKEN}/{file_path}"
     return {"success": True, "download_url": download_url}, 200
 
 # 7. Función para configurar el webhook en Telegram
