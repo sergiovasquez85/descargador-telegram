@@ -46,19 +46,27 @@ async def handle_message(update: Update, context):
         await update.message.reply_text("No se encontró video ni documento en el mensaje.")
 
 async def handle_video(update: Update, context):
-    # Imprime toda la información del mensaje para depurar
-    print("Mensaje recibido:", update.to_dict())
-    
-    # Revisa si el video está en el mensaje
+    # Verifica si el mensaje tiene video o documento
     if update.message.video:
         file_id = update.message.video.file_id
-        await update.message.reply_text(f"El file_id del video es: {file_id}")
-    # En caso de que se envíe como documento (si el usuario lo envía como archivo)
     elif update.message.document:
         file_id = update.message.document.file_id
-        await update.message.reply_text(f"El file_id del documento es: {file_id}")
     else:
         await update.message.reply_text("No se encontró video ni documento en el mensaje.")
+        return
+
+    await update.message.reply_text(f"El file_id es: {file_id}")
+    
+    # Obtener el objeto File mediante get_file
+    file = await context.bot.get_file(file_id)
+    file_path = file.file_path  # Esto es lo que devuelve Telegram
+    
+    # Formar la URL de descarga
+    download_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
+    
+    # Enviar la URL al usuario
+    await update.message.reply_text(f"El enlace de descarga es: {download_url}")
+
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
