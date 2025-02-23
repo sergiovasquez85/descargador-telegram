@@ -75,7 +75,7 @@ def descargar_video():
 # 7. Función para configurar el webhook en Telegram
 def set_webhook():
     # Reemplaza 'your-real-railway-url.up.railway.app' con la URL real asignada a tu servicio Railway.
-    WEBHOOK_URL = f"https://your-real-railway-url.up.railway.app/{TOKEN}"
+    WEBHOOK_URL = f"https://descargador-telegram-production.up.railway.app/{TOKEN}"
     response = requests.post(
         f"https://api.telegram.org/bot{TOKEN}/setWebhook",
         json={"url": WEBHOOK_URL}
