@@ -45,6 +45,21 @@ async def handle_message(update: Update, context):
     else:
         await update.message.reply_text("No se encontró video ni documento en el mensaje.")
 
+async def handle_video(update: Update, context):
+    # Imprime toda la información del mensaje para depurar
+    print("Mensaje recibido:", update.to_dict())
+    
+    # Revisa si el video está en el mensaje
+    if update.message.video:
+        file_id = update.message.video.file_id
+        await update.message.reply_text(f"El file_id del video es: {file_id}")
+    # En caso de que se envíe como documento (si el usuario lo envía como archivo)
+    elif update.message.document:
+        file_id = update.message.document.file_id
+        await update.message.reply_text(f"El file_id del documento es: {file_id}")
+    else:
+        await update.message.reply_text("No se encontró video ni documento en el mensaje.")
+
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 telegram_app.add_handler(MessageHandler(filters.VIDEO, handle_video))
